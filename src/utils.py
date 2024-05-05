@@ -61,3 +61,52 @@ def get_vacancies_data_by_employer(employers_id) -> list[dict]:
         vacancies_by_employer.append({id_emp: vacancies_to_add})
 
     return vacancies_by_employer
+
+
+def create_database(database_name: str, params: dict) -> None:
+    """Создание базы данных и таблиц для сохранения данных о работодателях и их вакансиях"""
+
+    conn = psycopg2.connect(dbname='postgres', **params)
+    conn.autocommit = True
+    cur = conn.cursor()
+
+    try:
+        cur.execute(f'DROP DATABASE {database_name}')
+    except psycopg2.errors.InvalidCatalogName:
+        pass
+
+    cur.execute(f'CREATE DATABASE {database_name}')
+    cur.close()
+    conn.close()
+
+    conn = psycopg2.connect(dbname=database_name, **params)
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TABLE employers (
+                employer_id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                industries TEXT,
+                country VARCHAR(50),
+                open_vacancies INTEGER,
+                alternate_url TEXT,
+                site_url TEXT
+                )
+        """)
+
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TABLE vacancies (
+                vacancy_id SERIAL PRIMARY KEY,
+                employer_id INT REFERENCES employers(employer_id),
+                name VARCHAR NOT NULL,
+                requirement TEXT,
+                responsibility TEXT,
+                salary_min INT,
+                salary_max INT,
+                alternate_url TEXT
+                )
+        """)
+
+    conn.commit()
+    conn.close()
