@@ -14,7 +14,7 @@ class DBManager:
         """Метод для закрытия соединения с базой данных перед удалением экземпляра"""
         self.conn.close()
 
-    def get_companies_and_vacancies_count(self):
+    def get_companies_and_vacancies_count(self) -> list[tuple]:
         """Получает список всех компаний и количество вакансий у каждой компании"""
 
         with self.conn.cursor() as cur:
@@ -27,7 +27,14 @@ class DBManager:
     def get_all_vacancies(self):
         """Получает список всех вакансий с указанием названия компании,
             названия вакансии и зарплаты и ссылки на вакансию"""
-        pass
+
+        with self.conn.cursor() as cur:
+            cur.execute("""
+                SELECT employers.name, vacancies.name, salary_min, salary_max, vacancies.alternate_url
+                FROM public.vacancies 
+                LEFT JOIN employers USING(employer_id)
+            """)
+            return cur.fetchall()
 
     def get_avg_salary(self):
         """Получает среднюю зарплату по вакансиям"""
