@@ -47,7 +47,15 @@ class DBManager:
 
     def get_vacancies_with_higher_salary(self):
         """Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям"""
-        pass
+
+        with self.conn.cursor() as cur:
+            cur.execute("""
+                SELECT vacancies.name, salary_min, salary_max, employers.name, vacancies.alternate_url FROM vacancies
+                LEFT JOIN employers USING(employer_id)
+                WHERE salary_min > (SELECT AVG(salary_min) FROM vacancies)
+                ORDER BY salary_min DESC
+            """)
+            return cur.fetchall()
 
     def get_vacancies_with_keyword(self):
         """Получает список всех вакансий, в названии которых содержатся переданные в метод слова, например python"""
