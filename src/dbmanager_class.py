@@ -59,4 +59,11 @@ class DBManager:
 
     def get_vacancies_with_keyword(self, key_word: str) -> list[tuple]:
         """Получает список всех вакансий, в названии которых содержатся переданные в метод слова, например python"""
-        pass
+
+        with self.conn.cursor() as cur:
+            cur.execute(f"""
+                SELECT vacancies.name, salary_min, salary_max, vacancies.alternate_url FROM vacancies
+                WHERE name LIKE '%{key_word}%'
+                ORDER BY salary_min DESC
+            """)
+            return cur.fetchall()
