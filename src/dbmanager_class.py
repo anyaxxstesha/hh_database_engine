@@ -38,7 +38,12 @@ class DBManager:
 
     def get_avg_salary(self):
         """Получает среднюю зарплату по вакансиям"""
-        pass
+
+        with self.conn.cursor() as cur:
+            cur.execute("""
+                SELECT AVG(salary_min) FROM vacancies;
+            """)
+            return cur.fetchall()
 
     def get_vacancies_with_higher_salary(self):
         """Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям"""
