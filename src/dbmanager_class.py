@@ -24,7 +24,7 @@ class DBManager:
             """)
             return cur.fetchall()
 
-    def get_all_vacancies(self):
+    def get_all_vacancies(self) -> list[tuple]:
         """Получает список всех вакансий с указанием названия компании,
             названия вакансии и зарплаты и ссылки на вакансию"""
 
@@ -36,7 +36,7 @@ class DBManager:
             """)
             return cur.fetchall()
 
-    def get_avg_salary(self):
+    def get_avg_salary(self) -> list[tuple]:
         """Получает среднюю зарплату по вакансиям"""
 
         with self.conn.cursor() as cur:
@@ -45,7 +45,7 @@ class DBManager:
             """)
             return cur.fetchall()
 
-    def get_vacancies_with_higher_salary(self):
+    def get_vacancies_with_higher_salary(self) -> list[tuple]:
         """Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям"""
 
         with self.conn.cursor() as cur:
@@ -57,6 +57,6 @@ class DBManager:
             """)
             return cur.fetchall()
 
-    def get_vacancies_with_keyword(self):
+    def get_vacancies_with_keyword(self, key_word: str) -> list[tuple]:
         """Получает список всех вакансий, в названии которых содержатся переданные в метод слова, например python"""
         pass
