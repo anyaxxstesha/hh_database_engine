@@ -83,12 +83,10 @@ def create_database(database_name: str, params: dict) -> None:
     with conn.cursor() as cur:
         cur.execute("""
             CREATE TABLE employers (
-                employer_id SERIAL PRIMARY KEY,
+                employer_id INT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
-                description TEXT,
-                industries TEXT,
-                country VARCHAR(50),
                 open_vacancies INTEGER,
+                industries TEXT,
                 alternate_url TEXT,
                 site_url TEXT
                 )
@@ -107,6 +105,49 @@ def create_database(database_name: str, params: dict) -> None:
                 alternate_url TEXT
                 )
         """)
+
+    conn.commit()
+    conn.close()
+
+
+def save_data_to_database(emp_data: list[dict[str, Any]], vac_data: list[dict[str, Any]],
+                          database_name: str, params: dict) -> None:
+    """Сохранение данных о работодателях и их вакансиях в базу данных"""
+
+    conn = psycopg2.connect(dbname=database_name, **params)
+
+    with conn.cursor() as cur:
+        for emp in emp_data:
+            industries = emp['industries']
+            industries_str = ", ".join([i["name"] for i in industries])
+            cur.execute(
+                """
+                INSERT INTO employers (employer_id, name, open_vacancies, industries,
+                                       alternate_url, site_url)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING employer_id
+                """,
+                (emp['id'], emp['name'], emp['open_vacancies'], industries_str,
+                 emp['alternate_url'], emp['site_url'])
+            )
+
+        for employer_vacs in vac_data:
+            employer_id, *_ = employer_vacs.keys()
+            vacancies = employer_vacs[employer_id]
+
+            for vac in vacancies:
+                salary = vac.get('salary') or {}
+                snippet = vac.get('snippet') or {}
+                cur.execute(
+                    """
+                    INSERT INTO vacancies (employer_id, name, requirement,
+                                        responsibility, salary_min, salary_max, alternate_url)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (employer_id, vac['name'], snippet.get('requirement'),
+                     snippet.get('responsibility'), salary.get('from'), salary.get('to'),
+                     vac['alternate_url'])
+                )
 
     conn.commit()
     conn.close()
